@@ -1,0 +1,5 @@
+pydantic
+orjson
+httpx
+curl-cffi
+tqdm
