@@ -58,9 +58,14 @@ def load_config() -> Config:
         logger.error(f"Iteration delay is not provided in settings.yaml")
         exit(1)
 
+    if not settings.get("threads"):
+        logger.error(f"Threads is not provided in settings.yaml")
+        exit(1)
+
     return Config(
         accounts=list(get_accounts()),
         referral_code=settings["referral_code"],
         rpc_url=settings["rpc_url"],
         iteration_delay=settings["iteration_delay"],
+        threads=settings["threads"],
     )

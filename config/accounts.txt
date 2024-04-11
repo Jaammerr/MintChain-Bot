@@ -1,7 +1,0 @@
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy
-auth_token|mnemonic|proxy

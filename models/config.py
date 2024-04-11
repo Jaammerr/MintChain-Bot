@@ -8,3 +8,4 @@ class Config(BaseModel):
     referral_code: str
     rpc_url: HttpUrl
     iteration_delay: PositiveInt
+    threads: PositiveInt
