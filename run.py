@@ -3,9 +3,10 @@ import sys
 import urllib3
 from loguru import logger
 
-from loader import config
+from loader import config, semaphore
 from src.bot import Bot
 from utils import show_dev_info
+from models import Account
 
 
 def setup():
@@ -20,6 +21,11 @@ def setup():
     logger.add("logs.log", rotation="1 day", retention="7 days")
 
 
+async def run_safe(account: Account):
+    async with semaphore:
+        await Bot(account).start()
+
+
 async def run():
     show_dev_info()
     logger.info(
@@ -29,7 +35,7 @@ async def run():
     while True:
         logger.info(f"Starting new iteration")
         tasks = [
-            asyncio.create_task(Bot(account).start()) for account in config.accounts
+            asyncio.create_task(run_safe(account)) for account in config.accounts
         ]
 
         await asyncio.gather(*tasks)
