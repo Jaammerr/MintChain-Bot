@@ -38,6 +38,8 @@ class MintChainAPI(Wallet):
 
     def setup_session(self) -> Session:
         session = Session(client=Client.CHROME_120)
+        session.random_tls_extension_order = True
+
         session.timeout_seconds = 15
         session.headers = {
             "authority": "www.mintchain.io",
@@ -125,7 +127,7 @@ class MintChainAPI(Wallet):
         }
 
         json_data = {
-            "code": configuration.referral_code,
+            "code": str(configuration.referral_code),
             "jwtToken": jwt_token,
         }
 
