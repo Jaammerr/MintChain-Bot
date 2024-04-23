@@ -20,19 +20,16 @@ def get_accounts() -> Account:
 
         for account in accounts:
             values = account.split("|")
-            if len(values) == 2:
-                yield Account(auth_token=values[0].strip(), mnemonic=values[1].strip())
-
-            elif len(values) == 3:
+            if len(values) == 3:
                 yield Account(
                     auth_token=values[0].strip(),
-                    mnemonic=values[1].strip(),
+                    pk_or_mnemonic=values[1].strip(),
                     proxy=values[2].strip(),
                 )
 
             else:
                 logger.error(
-                    f"Account <<{account}>> is not in correct format | Need to be in format: <<auth_token|mnemonic|proxy>>"
+                    f"Account <<{account}>> is not in correct format | Need to be in format: <<auth_token|mnemonic/pv_key|proxy>>"
                 )
                 exit(1)
 

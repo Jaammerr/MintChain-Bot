@@ -16,7 +16,7 @@ class MintChainAPI(Wallet):
     API_URL = "https://www.mintchain.io/api"
 
     def __init__(self, account_data: Account):
-        super().__init__(mnemonic=account_data.mnemonic, rpc_url=configuration.rpc_url)
+        super().__init__(mnemonic=account_data.pk_or_mnemonic, rpc_url=configuration.rpc_url)
         self.account = account_data
         self.session = self.setup_session()
 

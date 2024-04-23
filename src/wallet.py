@@ -12,7 +12,7 @@ Account.enable_unaudited_hdwallet_features()
 class Wallet(Web3, Account):
     def __init__(self, mnemonic: str, rpc_url: str):
         super().__init__(Web3.HTTPProvider(rpc_url))
-        self.keypair = self.from_mnemonic(mnemonic)
+        self.keypair = self.from_mnemonic(mnemonic) if len(mnemonic.split()) in (12, 24) else self.from_key(mnemonic)
 
     @property
     def transactions_count(self) -> Nonce:
