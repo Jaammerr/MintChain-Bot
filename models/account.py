@@ -6,6 +6,7 @@ class Account(BaseModel):
     auth_token: str
     pk_or_mnemonic: str
     proxy: str = None
+    proxy_change_url: str = None
 
 
     @field_validator("proxy", mode="before")

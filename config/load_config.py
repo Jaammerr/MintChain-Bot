@@ -26,6 +26,13 @@ def get_accounts() -> Account:
                     pk_or_mnemonic=values[1].strip(),
                     proxy=values[2].strip(),
                 )
+            elif len(values) == 4:
+                yield Account(
+                    auth_token=values[0].strip(),
+                    pk_or_mnemonic=values[1].strip(),
+                    proxy=values[2].strip(),
+                    proxy_change_url=values[3].strip(),
+                )
 
             else:
                 logger.error(

@@ -230,3 +230,7 @@ class MintChainAPI(Wallet):
         if not data.user.inviteId:
             await self.bind_invite_code()
             logger.debug(f"Account: {self.account.auth_token} | Referral code bound")
+
+    async def update_proxy(self):
+        response = await self.session.get(self.account.proxy_change_url)
+        response.raise_for_status()
