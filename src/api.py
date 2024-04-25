@@ -252,7 +252,8 @@ class MintChainAPI(Wallet):
             logger.debug(f"Account: {self.account.auth_token} | Referral code bound")
 
     async def update_proxy(self) -> bool:
-        response = await self.session.get(self.account.proxy_change_url)
-        response.raise_for_status()
+        if self.account.proxy_change_url:
+            response = await self.session.get(self.account.proxy_change_url)
+            response.raise_for_status()
 
         return True
