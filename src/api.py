@@ -58,12 +58,12 @@ class MintChainAPI(Wallet):
         return session
 
     async def send_request(
-        self,
-        request_type: Literal["POST", "GET"] = "POST",
-        method: str = None,
-        json_data: dict = None,
-        params: dict = None,
-        url: str = None,
+            self,
+            request_type: Literal["POST", "GET"] = "POST",
+            method: str = None,
+            json_data: dict = None,
+            params: dict = None,
+            url: str = None,
     ):
         def _verify_response(_response: dict) -> dict:
             if "code" in _response:
@@ -251,6 +251,8 @@ class MintChainAPI(Wallet):
             await self.bind_invite_code()
             logger.debug(f"Account: {self.account.auth_token} | Referral code bound")
 
-    async def update_proxy(self):
+    async def update_proxy(self) -> bool:
         response = await self.session.get(self.account.proxy_change_url)
         response.raise_for_status()
+
+        return True

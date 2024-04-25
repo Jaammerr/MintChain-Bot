@@ -93,6 +93,7 @@ class Bot(MintChainAPI):
 
         try:
             operations = [
+                self.update_proxy,
                 self.process_login,
                 self.process_complete_tasks,
                 self.process_claim_daily_reward,
@@ -109,13 +110,6 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Unhandled error: {error}"
             )
         finally:
-            await self.safe_operation(
-                operation=self.update_proxy,
-                success_message="Proxy updated",
-                error_message="Failed to update proxy",
-                retries=3,
-            )
-
             logger.success(
                 f"Account: {self.account.auth_token} | Finished | Waiting for next iteration.."
             )
