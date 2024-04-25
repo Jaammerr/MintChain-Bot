@@ -15,6 +15,7 @@
 - **Auto registration**
 - **Auto bind referral**
 - **Auto bind twitter**
+- **Auto collect twitter tasks**
 - **Auto collect daily rewards every X time**
 
 
@@ -54,6 +55,7 @@
 
 ## ⚙️ Accounts format (config > accounts.txt)
 
+- twitter_auth_token|wallet_mnemonic|proxy|proxy_change_url
 - twitter_auth_token|wallet_mnemonic|proxy
 - twitter_auth_token|wallet_mnemonic
 
