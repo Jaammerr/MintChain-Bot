@@ -76,6 +76,14 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Failed to get user info: {error} | Daily actions done.."
             )
 
+    async def process_complete_tasks(self) -> bool:
+        return await self.safe_operation(
+            operation=self.complete_all_tasks,
+            success_message="All tasks have been completed",
+            error_message="Failed to complete all tasks",
+            retries=3,
+        )
+
     async def start(self):
         random_delay = random.randint(1, 30)
         logger.info(
@@ -86,6 +94,7 @@ class Bot(MintChainAPI):
         try:
             operations = [
                 self.process_login,
+                self.process_complete_tasks,
                 self.process_claim_daily_reward,
                 self.process_inject,
                 self.process_show_user_info,

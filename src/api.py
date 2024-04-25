@@ -95,6 +95,26 @@ class MintChainAPI(Wallet):
         response.raise_for_status()
         return _verify_response(response.json())
 
+    async def get_tasks(self) -> dict:
+        response = await self.send_request(
+            request_type="GET", method=f"/tree/task-list?address={self.keypair.address}"
+        )
+        return response["result"]
+
+    async def complete_task(self, task_id: int) -> int:
+        response = await self.send_request(
+            request_type="POST", method="/tree/task-submit", json_data={'id': task_id}
+        )
+
+        return response.get("result").get("amount")
+
+    async def complete_all_tasks(self) -> None:
+        tasks = await self.get_tasks()
+        for task in tasks:
+            if not task.get('claimed') and 'twitter' in task.get('spec'):
+                reward = await self.complete_task(task.get('id'))
+                logger.success(f"Account: {self.account.auth_token} | Earned: {reward} | Task {task['id']} done")
+
     async def is_daily_reward_claimed(self) -> bool:
         response = await self.send_request(
             request_type="GET", method="/tree/energy-list"
