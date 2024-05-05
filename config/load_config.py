@@ -1,5 +1,6 @@
 import os
 import yaml
+import random
 
 from loguru import logger
 from models import Account, Config
@@ -43,26 +44,37 @@ def load_config() -> Config:
     with open(settings_path, "r") as f:
         settings = yaml.safe_load(f)
 
-    if not settings.get("referral_code"):
-        logger.error(f"Referral code is not provided in settings.yaml")
-        exit(1)
+    REQUIRED_KEYS = (
+        "referral_code",
+        "eth_rpc_url",
+        "sepolia_rpc_url",
+        "threads",
+        "min_amount_to_bridge",
+        "max_amount_to_bridge",
+        "min_delay_before_start",
+        "max_delay_before_start",
+        "spin_turntable_by_percentage_of_energy",
+        "shuffle_accounts",
+    )
 
-    if not settings.get("rpc_url"):
-        logger.error(f"RPC URL is not provided in settings.yaml")
-        exit(1)
+    for key in REQUIRED_KEYS:
+        if key not in settings:
+            logger.error(f"Key <<{key}>> is missing in settings.yaml")
+            exit(1)
 
-    if not settings.get("iteration_delay"):
-        logger.error(f"Iteration delay is not provided in settings.yaml")
-        exit(1)
-
-    if not settings.get("threads"):
-        logger.error(f"Threads is not provided in settings.yaml")
-        exit(1)
+    accounts = list(get_accounts())
+    if settings["shuffle_accounts"]:
+        random.shuffle(accounts)
 
     return Config(
-        accounts=list(get_accounts()),
+        accounts=accounts,
         referral_code=settings["referral_code"],
-        rpc_url=settings["rpc_url"],
-        iteration_delay=settings["iteration_delay"],
         threads=settings["threads"],
+        min_amount_to_bridge=settings["min_amount_to_bridge"],
+        max_amount_to_bridge=settings["max_amount_to_bridge"],
+        eth_rpc_url=settings["eth_rpc_url"],
+        sepolia_rpc_url=settings["sepolia_rpc_url"],
+        min_delay_before_start=settings["min_delay_before_start"],
+        max_delay_before_start=settings["max_delay_before_start"],
+        spin_turntable_by_percentage_of_energy=settings["spin_turntable_by_percentage_of_energy"],
     )

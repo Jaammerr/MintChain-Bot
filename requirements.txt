@@ -8,6 +8,9 @@ art~=6.1
 orjson~=3.9.15
 httpx~=0.27.0
 tqdm~=4.66.2
-noble_tls
+noble_tls~=0.0.102
 eth_account
-curl_cffi
+curl_cffi~=0.6.2
+urllib3~=2.2.1
+inquirer~=3.2.4
+colorama~=0.4.6

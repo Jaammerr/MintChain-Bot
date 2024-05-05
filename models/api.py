@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, validator, model_validator
 
 
 class RankData(BaseModel):
@@ -18,7 +18,7 @@ class AssetData(BaseModel):
     reward: Any
     type: str = "energy"
     openAt: Any
-    createdAt: str
+    createdAt: str | None = None
 
 
 class OpenBoxData(BaseModel):
@@ -73,3 +73,46 @@ class LoginWalletData(BaseModel):
 
     access_token: str
     user: User
+
+
+
+class EnergyListData(BaseModel):
+    class Energy(BaseModel):
+        uid: list[str]
+        amount: int
+        includes: list[int]
+        type: str
+        id: str = None
+        freeze: bool = None
+
+        @model_validator(mode="before")
+        @classmethod
+        def validate_id(cls, values):
+            if values["type"] != "daily":
+                includes = [str(i) for i in values["includes"]]
+                uid_str = "_".join(includes)
+                values["id"] = f"{values['amount']}_{uid_str}"
+            else:
+                values["id"] = f"{values['amount']}_"
+
+            return values
+
+    result: list[Energy]
+
+
+class TaskListData(BaseModel):
+    class Task(BaseModel):
+        id: int
+        name: str
+        amount: int
+        isFreeze: bool
+        spec: str
+        claimed: bool | None = None
+
+    result: list[Task]
+
+
+class TurntableData(BaseModel):
+    energy: int
+    count: int
+    usedEnergy: int

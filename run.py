@@ -1,12 +1,13 @@
 import asyncio
 import sys
 import urllib3
+
 from loguru import logger
 
 from loader import config, semaphore
 from src.bot import Bot
-from utils import show_dev_info
 from models import Account
+from console import Console
 
 
 def setup():
@@ -27,22 +28,14 @@ async def run_safe(account: Account):
 
 
 async def run():
-    show_dev_info()
-    logger.info(
-        f"MintChain Bot started | Version: 1.0 | Total accounts: {len(config.accounts)}\n\n"
-    )
-
     while True:
-        logger.info(f"Starting new iteration")
+        Console().build()
+
         tasks = [
             asyncio.create_task(run_safe(account)) for account in config.accounts
         ]
-
         await asyncio.gather(*tasks)
-        logger.debug(
-            f"\n\nIteration finished | Sleeping for {config.iteration_delay} hours\n\n"
-        )
-        await asyncio.sleep(config.iteration_delay * 60 * 60)
+        input("\nPress Enter to continue...")
 
 
 if __name__ == "__main__":
