@@ -11,7 +11,7 @@
 
 💬 CHAT: https://t.me/JamBitChat
 
-💰 DONATION EVM ADDRESS: 0x08e3fdbb830ee591c0533C5E58f937D312b07198
+💰 DONATION EVM ADDRESS: 0xe23380ae575D990BebB3b81DB2F90Ce7eDbB6dDa
 
 
 ## 🤖 | Features:
