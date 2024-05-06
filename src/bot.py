@@ -92,6 +92,7 @@ class Bot(MintChainAPI):
         return True
 
 
+
     async def process_show_user_info(self) -> None:
         try:
             info = await self.tree_size
