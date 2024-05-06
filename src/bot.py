@@ -89,7 +89,7 @@ class Bot(MintChainAPI):
                     f"Account: {self.account.auth_token} | Failed to spin turntable: {error}"
                 )
 
-            return True
+        return True
 
 
     async def process_show_user_info(self) -> None:
