@@ -127,7 +127,7 @@ class Account:
         r = self.session.request(
             method=method,
             url=f"{self.gql_api}/{qid}/{op}",
-            headers=get_headers(self.session),
+            headers=self.session.headers,
             allow_redirects=True,
             **data,
         )
@@ -582,7 +582,7 @@ class Account:
 
     def tweet(
         self, text: str, *, media: List[MediaEntity] = None, **kwargs
-    ) -> dict | Coroutine[Any, Any, dict]:
+    ) -> dict:
         variables = {
             "tweet_text": text,
             "dark_request": False,

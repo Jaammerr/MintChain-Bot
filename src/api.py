@@ -24,6 +24,7 @@ class MintChainAPI(Wallet):
         super().__init__(mnemonic=account_data.pk_or_mnemonic, rpc_url=configuration.eth_rpc_url)
         self.account = account_data
         self.session = self.setup_session()
+        self.twitter_account: TwitterAccount = None  # type: ignore
 
     @property
     def jwt_token(self) -> str:
@@ -124,13 +125,31 @@ class MintChainAPI(Wallet):
                     continue
 
                 try:
-                    await self.submit_task_id(task.id)
+                    if task.spec in ("twitter-post", "twitter-follow"):
+                        if not self.twitter_account:
+                            self.load_twitter_account()
+
+                        if task.spec == "twitter-follow":
+                            user_id = self.twitter_account.get_user_id("Mint_Blockchain")
+                            self.twitter_account.follow(user_id)
+                            await self.submit_task_id(task.id)
+
+                        else:
+                            tweet_text = "I'm collecting @Mint_Blockchain's ME $MINT in the #MintForest🌳!\n\nMint is the L2 for NFT industry, powered by @nftscan_com and @Optimism.\n\nJoin Mint Forest here: https://mintchain.io/mint-forest\n\n#MintBlockchain #L2forNFT"
+
+                            data = self.twitter_account.tweet(tweet_text)
+                            tweet_url = f'https://x.com/JammerCrypto/status/{data["data"]["create_tweet"]["tweet_results"]["result"]["rest_id"]}'
+                            await self.submit_task_id(task.id, twitter_post=tweet_url)
+
+                    else:
+                        await self.submit_task_id(task.id)
+
                     logger.debug(f"Account: {self.account.auth_token} | Task completed: {task.name} | Reward: {task.amount} energy")
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(3)
 
                 except APIError as error:
                     logger.error(f"Account: {self.account.auth_token} | Failed to complete task: {task.name} | {error}")
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(3)
 
     async def claim_daily_rewards(self) -> None:
         energy_list = await self.get_energy_list()
@@ -178,6 +197,14 @@ class MintChainAPI(Wallet):
         )
         return ResponseData(**response.json())
 
+    def load_twitter_account(self) -> None:
+        self.twitter_account = TwitterAccount.run(
+            auth_token=self.account.auth_token,
+            setup_session=True,
+            proxy=self.account.proxy,
+        )
+
+
     async def connect_twitter(self) -> dict:
         params = {
             "code_challenge": "mintchain",
@@ -189,12 +216,10 @@ class MintChainAPI(Wallet):
             "state": "mintchain",
         }
 
-        twitter_account = TwitterAccount.run(
-            auth_token=self.account.auth_token,
-            setup_session=True,
-            proxy=self.account.proxy,
-        )
-        bind_data = twitter_account.bind_account_v2(
+        if not self.twitter_account:
+            self.load_twitter_account()
+
+        bind_data = self.twitter_account.bind_account_v2(
             bind_params=BindAccountParamsV2(**params)
         )
 
@@ -260,10 +285,13 @@ class MintChainAPI(Wallet):
         return InjectData(**response)
 
 
-    async def submit_task_id(self, task_id: int) -> None:
+    async def submit_task_id(self, task_id: int, twitter_post: str = None) -> None:
         json_data = {
             'id': task_id,
         }
+
+        if twitter_post:
+            json_data["twitterurl"] = twitter_post
 
         await self.send_request(method="/tree/task-submit", json_data=json_data)
 
