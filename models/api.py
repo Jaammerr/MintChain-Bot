@@ -13,11 +13,11 @@ class RankData(BaseModel):
 
 
 class AssetData(BaseModel):
-    id: int
-    uid: int
-    reward: Any
+    id: int | None = None
+    uid: int | None = None
+    reward: Any | None = None
     type: str = "energy"
-    openAt: Any
+    openAt: Any | None = None
     createdAt: str | None = None
 
 
@@ -42,18 +42,19 @@ class UserInfo(BaseModel):
     id: int
     treeId: int
     address: str
-    ens: Any
+    ens: Any | None = None
     energy: int
     tree: int
-    inviteId: int
+    inviteId: int | None = None
     type: str = "normal"
-    stake_id: int
-    nft_id: int
-    nft_pass: int
+    stake_id: int | None = None
+    nft_id: int | None = None
+    nft_pass: int | None = None
     signin: int
-    code: Any
+    code: Any | None = None
     createdAt: str
-    invitePercent: int
+    invitePercent: int | None = None
+    stealCount: int | None = None
 
 
 class ResponseData(BaseModel):
@@ -75,7 +76,6 @@ class LoginWalletData(BaseModel):
     user: User
 
 
-
 class EnergyListData(BaseModel):
     class Energy(BaseModel):
         uid: list[str]
@@ -84,6 +84,7 @@ class EnergyListData(BaseModel):
         type: str
         id: str = None
         freeze: bool = None
+        stealable: bool = None
 
         @model_validator(mode="before")
         @classmethod

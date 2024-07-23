@@ -7,7 +7,6 @@ class Account(BaseModel):
     pk_or_mnemonic: str
     proxy: str = None
 
-
     @field_validator("proxy", mode="before")
     def check_proxy(cls, value) -> str | None:
         if not value:

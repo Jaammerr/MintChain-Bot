@@ -1,15 +1,32 @@
+# MAIN SETTINGS #
 referral_code: C4ACD869 # Referral code (If you don't have one, pls, use mine)
-
-eth_rpc_url: https://eth.llamarpc.com # RPC URL (Ethereum)
-sepolia_rpc_url: https://ethereum-sepolia-rpc.publicnode.com # RPC URL (Sepolia)
-
 threads: 3
 
-min_delay_before_start: 30  # seconds
-max_delay_before_start: 60  # seconds
+mint_rpc_url: https://rpc.mintchain.io
+arb_rpc_url: https://arbitrum.llamarpc.com
 
-min_amount_to_bridge: 0.00001  # ETH
-max_amount_to_bridge: 0.0003  # ETH
+min_delay_before_start: 60  # seconds
+max_delay_before_start: 120  # seconds
 
-spin_turntable_by_percentage_of_energy: 60 # 0-100
+spin_turntable_by_percentage_of_energy: 0 # 0-100
 shuffle_accounts: True  # True/False
+# MAIN SETTINGS #
+#
+#
+#
+## MINT NFTs ##
+# available: mint_comm_nft, mint_make_nft_great_again, mint_flag, mint_shop, mint_air3, mint_supermint, mint_owlto_summer_nft, mint_omnihub_summer_nft, mint_summer_nft, mint_vip3_nft, mint_green_id
+mint_random_all_nfts: ["mint_make_nft_great_again", "mint_flag", "mint_shop", "mint_air3", "mint_supermint", "mint_owlto_summer_nft", "mint_omnihub_summer_nft", "mint_summer_nft", "mint_vip3_nft", "mint_green_id", "mint_comm_nft"]
+delay_between_mint_min: 10  # seconds
+delay_between_mint_max: 20  # seconds
+## MINT NFTs ##
+#
+#
+#
+#
+## COMET BRIDGE ##
+comet_bridge_wallet: ""  # pk or mnemonic from which script will send ETH to bridge to your multiwallet
+comet_bridge_amount_min: 0.00115  # ETH
+comet_bridge_amount_max: 0.0012  # ETH
+## COMET BRIDGE ##
+

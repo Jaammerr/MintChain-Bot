@@ -7,16 +7,21 @@ class Config(BaseModel):
     accounts: list[Account]
     referral_code: str | int
 
-    eth_rpc_url: HttpUrl
-    sepolia_rpc_url: HttpUrl
+    mint_rpc_url: HttpUrl
+    arb_rpc_url: HttpUrl
 
     threads: PositiveInt
 
     min_delay_before_start: PositiveInt
     max_delay_before_start: PositiveInt
 
-    min_amount_to_bridge: PositiveFloat
-    max_amount_to_bridge: PositiveFloat
+    comet_bridge_wallet: str
+    comet_bridge_amount_min: PositiveFloat
+    comet_bridge_amount_max: PositiveFloat
+
+    mint_random_all_nfts: list[str]
+    delay_between_mint_min: PositiveInt
+    delay_between_mint_max: PositiveInt
 
     spin_turntable_by_percentage_of_energy: int
     module: str = ""

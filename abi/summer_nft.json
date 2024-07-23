@@ -1,0 +1,54 @@
+[
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "currency",
+        "type": "address"
+      },
+      {
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "name": "proof",
+            "type": "bytes32[]"
+          },
+          {
+            "name": "maxAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "minValue",
+            "type": "uint256"
+          },
+          {
+            "name": "currency",
+            "type": "address"
+          }
+        ],
+        "name": "details",
+        "type": "tuple"
+      },
+      {
+        "name": "extraData",
+        "type": "bytes"
+      }
+    ],
+    "name": "claim",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

@@ -1,4 +1,1 @@
-auth_token|mnemonic/pk|proxy
-auth_token|mnemonic/pk|proxy
-auth_token|mnemonic/pk|proxy
-auth_token|mnemonic/pk|proxy
+auth_token|pk_or_mnemonic|ip:port:user:pass

@@ -13,18 +13,52 @@ sys.path.append(os.path.realpath("."))
 
 
 class Console:
-    MODULES = ("Test the Mint Testnet Bridge", "Complete Tasks", "Claim Daily Rewards and Inject", "Exit")
+    MODULES = (
+        "Complete Tasks",
+        "Mint Random All NFTs",
+        "Claim Daily Rewards and Inject",
+        "Bridge ETH to MINT (via Comet)",
+        "Only Claim Daily Rewards",
+        "Export Trees IDs",
+        "Fix sign",
+        "Mint Green ID",
+        "Mint Commemorative NFT",
+        "Mint OmniHub Collection",
+        "Mint Make NFT Great Again",
+        "Mint Flag NFT",
+        "Mint Shop NFT",
+        "Mint Air3 NFT",
+        "Mint SuperMint NFT",
+        "Mint Owlto SummerFest NFT",
+        "Mint Omnihub SummerFest NFT",
+        "Mint Vip3 NFT",
+        "Exit",
+    )
     MODULES_DATA = {
-        "Test the Mint Testnet Bridge": "bridge",
         "Complete Tasks": "tasks",
         "Claim Daily Rewards and Inject": "rewards",
+        "Mint Random All NFTs": "mint_random_all_nfts",
+        "Bridge ETH to MINT (via Comet)": "comet_bridge",
+        "Export Trees IDs": "export_trees_ids",
+        "Only Claim Daily Rewards": "only_rewards",
+        "Fix sign": "fix_sign",
+        "Mint Commemorative NFT": "mint_comm_nft",
+        "Mint Make NFT Great Again": "mint_make_nft_great_again",
+        "Mint Flag NFT": "mint_flag",
+        "Mint Shop NFT": "mint_shop",
+        "Mint Air3 NFT": "mint_air3",
+        "Mint SuperMint NFT": "mint_supermint",
+        "Mint Owlto SummerFest NFT": "mint_owlto_summer_nft",
+        "Mint Omnihub SummerFest NFT": "mint_omnihub_summer_nft",
+        "Mint Vip3 NFT": "mint_vip3_nft",
+        "Mint Green ID": "mint_green_id",
     }
 
     @staticmethod
     def show_dev_info():
         os.system("cls")
         tprint("JamBit")
-        print("\033[36m" + "VERSION: " + "\033[34m" + "2.0" + "\033[34m")
+        print("\033[36m" + "VERSION: " + "\033[34m" + "3.0" + "\033[34m")
         print(
             "\033[36m" + "Channel: " + "\033[34m" + "https://t.me/JamBitPY" + "\033[34m"
         )
@@ -64,7 +98,9 @@ class Console:
     def build(self) -> None:
         os.system("cls")
         self.show_dev_info()
-        info_log(f"\n- accounts: {len(config.accounts)}\n- referral_code: {config.referral_code}\n- threads: {config.threads}\n")
+        info_log(
+            f"\n- accounts: {len(config.accounts)}\n- referral_code: {config.referral_code}\n- threads: {config.threads}\n"
+        )
 
         module = self.get_module()
         if module == "Exit":
