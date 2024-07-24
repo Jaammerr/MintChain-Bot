@@ -23,7 +23,6 @@ class Console:
         "Fix sign",
         "Mint Green ID",
         "Mint Commemorative NFT",
-        "Mint OmniHub Collection",
         "Mint Make NFT Great Again",
         "Mint Flag NFT",
         "Mint Shop NFT",
