@@ -31,6 +31,7 @@ class Console:
         "Mint Owlto SummerFest NFT",
         "Mint Omnihub SummerFest NFT",
         "Mint Vip3 NFT",
+        "Mint Summer NFT",
         "Exit",
     )
     MODULES_DATA = {
@@ -51,6 +52,7 @@ class Console:
         "Mint Omnihub SummerFest NFT": "mint_omnihub_summer_nft",
         "Mint Vip3 NFT": "mint_vip3_nft",
         "Mint Green ID": "mint_green_id",
+        "Mint Summer NFT": "mint_summer_nft",
     }
 
     @staticmethod
