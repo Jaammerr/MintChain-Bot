@@ -21,7 +21,7 @@ from models import (
     MintSupermintData,
     CometBridgeData,
     Vip3MintData,
-    GreenIDData,
+    GreenIDData, GainfiMintData,
 )
 
 Account.enable_unaudited_hdwallet_features()
@@ -45,6 +45,14 @@ class Wallet(AsyncWeb3, Account):
         return self.eth.contract(
             address=AsyncWeb3.to_checksum_address(CommemorativeNFTData.address),
             abi=CommemorativeNFTData.abi,
+        )
+
+
+    @property
+    def get_gainfi_contract(self) -> AsyncContract:
+        return self.eth.contract(
+            address=AsyncWeb3.to_checksum_address(GainfiMintData.address),
+            abi=GainfiMintData.abi,
         )
 
     @property
@@ -203,6 +211,24 @@ class Wallet(AsyncWeb3, Account):
     async def build_mint_flag_transaction(self):
         contract = self.get_mint_flag_contract
         transaction = contract.functions.mint(1)
+
+        return await transaction.build_transaction(
+            {
+                "gasPrice": await self.eth.gas_price,
+                "nonce": await self.transactions_count(),
+                "gas": int(
+                    await transaction.estimate_gas({"from": self.keypair.address}) * 1.2
+                ),
+            }
+        )
+
+    async def build_gainfi_mint_transaction(self, mint_data: dict):
+        contract = self.get_gainfi_contract
+        transaction = contract.functions.pumpMasterMint(
+            self.keypair.address,
+            mint_data["id"],
+            mint_data["sign"],
+        )
 
         return await transaction.build_transaction(
             {

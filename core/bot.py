@@ -305,6 +305,25 @@ class Bot(MintChainAPI):
         except Exception as error:
             logger.error(f"Account: {self.account.auth_token} | {error}")
 
+
+    async def process_mint_gainfi_nft(self) -> None:
+        try:
+            await self.check_balance()
+            logger.info(f"Account: {self.account.auth_token} | Minting GainFi NFT..")
+            status, transaction_hash = await self.mint_gainfi_nft()
+
+            if status:
+                logger.success(
+                    f"Account: {self.account.auth_token} | Minted GainFi NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                )
+            else:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to mint GainFi NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                )
+
+        except Exception as error:
+            logger.error(f"Account: {self.account.auth_token} | {error}")
+
     # async def process_mint_omnihub_collection(self) -> None:
     #     try:
     #         if await self.human_balance() < 0.0001:
@@ -531,6 +550,7 @@ class Bot(MintChainAPI):
             "mint_omnihub_summer_nft": [self.process_mint_omnihub_summer_nft],
             "mint_vip3_nft": [self.process_mint_vip3_nft],
             "tasks": [self.process_login, self.process_complete_tasks],
+            "mint_gainfi_nft": [self.process_mint_gainfi_nft],
             "default": [self.process_login, self.process_complete_tasks],
         }
 

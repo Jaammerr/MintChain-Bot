@@ -71,3 +71,9 @@ class CometBridgeData:
 class Vip3MintData:
     address: str = "0xabe292b291A18699b09608de86888D77aD6BAf23"
     abi: list = open("./abi/vip3_nft.json", "r").read()
+
+
+@dataclass
+class GainfiMintData:
+    address: str = "0xec863FCCfcbd25421D0747424e53ED0136aC9f82"
+    abi: list = open("./abi/mint_gainfi.json", "r").read()

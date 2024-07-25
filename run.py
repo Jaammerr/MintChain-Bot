@@ -64,6 +64,7 @@ async def run():
             "mint_random_all_nfts",
             "mint_vip3_nft",
             "mint_green_id",
+            "mint_gainfi_nft",
         ):
             tasks = [
                 asyncio.create_task(run_safe(account)) for account in config.accounts

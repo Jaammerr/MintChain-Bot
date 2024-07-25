@@ -11,6 +11,8 @@ from Jam_Twitter_API.account_async import TwitterAccountAsync
 
 from models import *
 from loader import config as configuration
+from .modules.gainfi_api import GainfiAPI
+from .modules.temp_mail import TempMail
 
 from .wallet import Wallet
 from .modules import *
@@ -498,6 +500,39 @@ class MintChainAPI(Wallet):
 
         except Exception as error:
             raise Exception(f"Failed to mint OmniHub collection: {error}")
+
+
+    async def mint_gainfi_nft(self):
+        for _ in range(3):
+            try:
+                temp_mail = TempMail()
+                await temp_mail.generate_account()
+
+                client = GainfiAPI(self.account)
+                await client.login()
+
+                await client.send_email_code(temp_mail.account.address)
+                logger.info(f"Account: {self.account.auth_token} | Waiting for verification code")
+                code = await temp_mail.get_verification_code()
+                mint_data = await client.verify_email(temp_mail.account.address, code)
+                logger.info(f"Account: {self.account.auth_token} | Code approved | Minting GainFi NFT..")
+
+                transaction = await self.build_gainfi_mint_transaction(mint_data)
+                status, tx_hash = await self.send_and_verify_transaction(transaction)
+                return status, tx_hash
+
+            except APIError as error:
+                if "Visit too frequently" in str(error):
+                    logger.error(f"Account: {self.account.auth_token} | Visit too frequently | Retrying..")
+                    await asyncio.sleep(3)
+
+            except Exception as error:
+                raise Exception(f"Failed to mint GainFi NFT: {error}")
+
+            finally:
+                await temp_mail.session.close()
+
+        logger.error(f"Account: {self.account.auth_token} | Failed to mint GainFi NFT")
 
     async def mint_owlto_summer_fest_nft(self) -> tuple[bool | Any, str]:
         try:
