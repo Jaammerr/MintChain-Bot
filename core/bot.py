@@ -536,7 +536,7 @@ class Bot(MintChainAPI):
                 self.process_claim_daily_reward,
                 self.process_show_user_info,
             ],
-            "fix_sign": [self.process_login, self.process_show_user_info],
+            "fix_sign": [self.process_login, self.process_fix_sign],
             "mint_comm_nft": [self.process_mint_comm_nft],
             "mint_make_nft_great_again": [self.process_mint_make_nft_great_again],
             "mint_summer_nft": [self.process_mint_summer_nft],
