@@ -313,14 +313,6 @@ class MintChainAPI(Wallet):
     async def assets(self) -> List[AssetData]:
         response = await self.send_request(request_type="GET", method="/tree/asset")
         return [AssetData(**data) for data in response["result"]]
-
-    async def open_box(self, box_id: int) -> OpenBoxData:
-        json_data = {
-            "boxId": box_id,
-        }
-
-        response = await self.send_request(method="/tree/open-box", json_data=json_data)
-        return OpenBoxData(**response["result"])
     
     # ------------------------
     # Start Upgrade from Mr. X

@@ -24,6 +24,7 @@
 
 - **Auto registration**
 - **Find and steal other trees rewards**
+- **Total users**
 - **Bind referral**
 - **Bind twitter**
 - **Collect all possible rewards (boxes, energy)**
