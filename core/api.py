@@ -211,10 +211,30 @@ class MintChainAPI(Wallet):
                 else:
                     json_data["freeze"] = energy.freeze
 
-            await self.send_request(method="/tree/claim", json_data=json_data)
-            logger.debug(
-                f"Account: {self.account.auth_token} | Claimed {energy.amount} energy | Type: {energy.type}"
-            )
+            # ------------------------
+            # Start Upgrade from Mr. X
+            # ------------------------
+
+            if await self.human_balance() > 0.00005:
+                status, tx_hash, amount = await self.get_forest_proof_and_send_transaction('Signin')
+                if status:
+                    logger.success(
+                        f"Account: {self.account.auth_token} | Claimed signin double daily reward | Amount: {amount} | Transaction: {tx_hash}"
+                    )
+            else:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Insufficient balance to double signin transaction | Required: 0.00005 ETH"
+                )
+
+                await self.send_request(method="/tree/claim", json_data=json_data)
+                logger.debug(
+                    f"Account: {self.account.auth_token} | Claimed {energy.amount} energy | Type: {energy.type}"
+                )
+
+            # ------------------------
+            # End Upgrade from Mr. X
+            # ------------------------
+
             await asyncio.sleep(1)
 
         await self.claim_boxes()
@@ -293,45 +313,31 @@ class MintChainAPI(Wallet):
     async def assets(self) -> List[AssetData]:
         response = await self.send_request(request_type="GET", method="/tree/asset")
         return [AssetData(**data) for data in response["result"]]
-
-    async def open_box(self, box_id: int) -> OpenBoxData:
-        json_data = {
-            "boxId": box_id,
-        }
-
-        response = await self.send_request(method="/tree/open-box", json_data=json_data)
-        return OpenBoxData(**response["result"])
+    
+    # ------------------------
+    # Start Upgrade from Mr. X
+    # ------------------------
 
     async def claim_boxes(self):
         assets = await self.assets()
         for asset in assets:
             if not asset.createdAt:
-                try:
-                    opened_box_data = await self.open_box(asset.id)
-                    logger.debug(
-                        f"Account: {self.account.auth_token} | Box opened | Reward: {opened_box_data.energy} energy"
-                    )
-                except APIError as error:
+                if await self.human_balance() > 0.00005:
+                    status, tx_hash, amount = await self.get_forest_proof_and_send_transaction('OpenReward', box_id = asset.id)
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Box opened reward | Amount: {amount} | Transaction: https://explorer.mintchain.io/tx/{tx_hash}"
+                        )
+                else:
                     logger.error(
-                        f"Account: {self.account.auth_token} | Failed to open box: {asset.type} | {error}"
+                        f"Account: {self.account.auth_token} | Insufficient balance to openreward transaction | Required: 0.00005 ETH"
                     )
 
-                await asyncio.sleep(1)
+            await asyncio.sleep(1)
 
-    async def spin_turntable(self) -> TurntableData:
-        response = await self.send_request(
-            request_type="GET", method="/tree/turntable/open"
-        )
-        return TurntableData(**response["result"])
-
-    async def steal_claim(self, user_id: str) -> None:
-        json_data = {
-            "id": user_id,
-        }
-
-        await self.send_request(
-            request_type="GET", method="/tree/steal/claim", params=json_data
-        )
+    # ------------------------
+    # End Upgrade from Mr. X
+    # ------------------------
 
     async def inject(self, amount: int = None) -> InjectData:
         if not amount:
@@ -575,6 +581,63 @@ class MintChainAPI(Wallet):
             url="https://mpapi.mintchain.io/api/user/sign",
             params=params,
         )
+    
+    # ------------------------
+    # Start Upgrade from Mr. X
+    # ------------------------
+
+    async def total_user(self):
+        response = await self.send_request(request_type="GET", method="/tree/total-user")
+        return response['result']
+    
+    async def get_forest_proof_and_send_transaction(self, type: str, user_id: int = None, box_id: int = None):
+
+        try:
+            
+            params = {
+                "type": type,
+            }
+
+            params_types = {
+                'Steal': {'id': user_id},
+                'OpenReward': {'boxId': box_id}
+            }
+            
+            params.update(params_types.get(type, {}))
+
+            response = await self.send_request(method="/tree/get-forest-proof", request_type = "GET", params = params)
+            data = response['result']['tx']
+
+            if type == 'Steal':
+                amount = response['result'].get('amount')
+            else:
+                amount = response['result'].get('energy')
+
+            if data:
+
+                contract = "0x12906892AaA384ad59F2c431867af6632c68100a" # Mint Forest contact: https://explorer.mintchain.io/address/0x12906892AaA384ad59F2c431867af6632c68100a
+                transaction = {
+                    "from": self.keypair.address,
+                    "to": contract,
+                    "gasPrice": await self.eth.gas_price,
+                    "nonce": await self.transactions_count(),
+                    "gas": int(await self.eth.estimate_gas({
+                        "from": self.keypair.address,
+                        "to": contract,
+                        "data": data
+                    }) * 1.2),
+                    "data": data
+                }
+
+                status, tx_hash = await self.send_and_verify_transaction(transaction)
+                return status, tx_hash, amount
+            
+        except Exception as error:
+            raise Exception(f"Failed get forest proof and send transaction: {error}")
+        
+    # ------------------------
+    # End Upgrade from Mr. X
+    # ------------------------
 
     async def login(self):
         messages = self.sign_mint_message("forest")

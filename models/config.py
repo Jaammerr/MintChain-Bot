@@ -23,5 +23,9 @@ class Config(BaseModel):
     delay_between_mint_min: PositiveInt
     delay_between_mint_max: PositiveInt
 
+    find_and_steal_percentage_range_start: int
+    find_and_steal_percentage_range_end: int
+    find_and_steal_min_amount: int
+
     spin_turntable_by_percentage_of_energy: int
     module: str = ""

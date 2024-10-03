@@ -17,6 +17,8 @@ class Console:
         "Complete Tasks",
         "Mint Random All NFTs",
         "Claim Daily Rewards and Inject",
+        "Find and Steal Other Trees Rewards",
+        "Total Users",
         "Bridge ETH to MINT (via Comet)",
         "Only Claim Daily Rewards",
         "Export Trees IDs",
@@ -38,6 +40,8 @@ class Console:
     MODULES_DATA = {
         "Complete Tasks": "tasks",
         "Claim Daily Rewards and Inject": "rewards",
+        "Find and Steal Other Trees Rewards": "find_and_steal_other_trees_rewards",
+        "Total Users": "total_user",
         "Mint Random All NFTs": "mint_random_all_nfts",
         "Bridge ETH to MINT (via Comet)": "comet_bridge",
         "Export Trees IDs": "export_trees_ids",
@@ -59,10 +63,13 @@ class Console:
     @staticmethod
     def show_dev_info():
         os.system("cls")
-        tprint("JamBit")
-        print("\033[36m" + "VERSION: " + "\033[34m" + "3.0" + "\033[34m")
+        tprint("JamBit  &  Mr. X")
+        print("\033[36m" + "VERSION: " + "\033[34m" + "4.0" + "\033[34m")
         print(
             "\033[36m" + "Channel: " + "\033[34m" + "https://t.me/JamBitPY" + "\033[34m"
+        )
+        print(
+            "\033[36m" + "Channel: " + "\033[34m" + "https://t.me/mrxcrypto" + "\033[34m"
         )
         print(
             "\033[36m"
@@ -73,9 +80,23 @@ class Console:
         )
         print(
             "\033[36m"
-            + "DONATION EVM ADDRESS: "
+            + "GitHub: "
+            + "\033[34m"
+            + "https://github.com/mrxdegen"
+            + "\033[34m"
+        )
+        print(
+            "\033[36m"
+            + "JAMBIT DONATION EVM ADDRESS: "
             + "\033[34m"
             + "0xe23380ae575D990BebB3b81DB2F90Ce7eDbB6dDa"
+            + "\033[0m"
+        )
+        print(
+            "\033[36m"
+            + "MR. X DONATION EVM ADDRESS: "
+            + "\033[34m"
+            + "0xB12B3Df66BaE895916d18248435928892B3D3aae"
             + "\033[0m"
         )
         print()
