@@ -37,6 +37,22 @@ async def run_get_tree_info_module(account: Account) -> tuple[Any, bool | str]:
         if tree_id:
             logger.info(f"Account: {account.auth_token} | Tree ID: {tree_id}")
             return client.keypair.address, tree_id
+        
+# ------------------------
+# Start Upgrade from Mr. X
+# ------------------------
+
+async def run_total_user(account: Account):
+    return await Bot(account).process_total_user()
+
+        
+async def run_find_and_steal_rewards_module(account: Account, start: int, end: int, min_amount: int = None):
+    async with semaphore:
+        await Bot(account).process_find_and_steal_rewards(start, end, min_amount)
+
+# ------------------------
+# End Upgrade from Mr. X
+# ------------------------
 
 
 async def run():
@@ -78,6 +94,39 @@ async def run():
             ]
             results = await asyncio.gather(*tasks)
             export_trees_ids(results)
+
+        # ------------------------
+        # Start Upgrade from Mr. X
+        # ------------------------
+        
+        elif config.module == "total_user":
+            return await run_total_user(random.choice(config.accounts))
+
+        elif config.module == "find_and_steal_other_trees_rewards":
+
+            total_user = await run_total_user(random.choice(config.accounts))
+            
+            min_amount = config.find_and_steal_min_amount
+            start_range = int((config.find_and_steal_percentage_range_start / 100) * total_user)
+            end_range = int((config.find_and_steal_percentage_range_end / 100) * total_user)
+
+            chunk_size = (end_range - start_range) // len(config.accounts)
+
+            tasks = []
+
+            for i, account in enumerate(config.accounts):
+
+                start = start_range + (i * chunk_size)
+                end = start + chunk_size if i < len(config.accounts) - 1 else end_range
+                tasks.append(
+                    asyncio.create_task(run_find_and_steal_rewards_module(account, start, end, min_amount))
+                )
+
+            results = await asyncio.gather(*tasks)
+
+            # ------------------------
+            # End Upgrade from Mr. X
+            # ------------------------
 
         input("\n\nPress Enter to continue...")
 

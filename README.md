@@ -9,14 +9,21 @@
 
 🔔 CHANNEL: https://t.me/JamBitPY
 
+🔔 CHANNEL: https://t.me/mrxcrypto
+
 💬 CHAT: https://t.me/JamBitChat
 
-💰 DONATION EVM ADDRESS: 0xe23380ae575D990BebB3b81DB2F90Ce7eDbB6dDa
+💬 CHAT: https://t.me/mrxcrypto_chat
+
+💰 JAMBIT DONATION EVM ADDRESS: 0xe23380ae575D990BebB3b81DB2F90Ce7eDbB6dDa
+
+💰 Mr. X DONATION EVM ADDRESS: 0xB12B3Df66BaE895916d18248435928892B3D3aae
 
 
 ## 🤖 | Features:
 
 - **Auto registration**
+- **Find and steal other trees rewards**
 - **Bind referral**
 - **Bind twitter**
 - **Collect all possible rewards (boxes, energy)**
@@ -72,6 +79,9 @@ delay_between_mint_min                  | min delay between mint NFTs (in second
 | comet_bridge_wallet                    | main wallet (pr or mnemonic) for bridge from ARB to MINT multi wallets                                                                                     |
 | comet_bridge_amount_min               | min amount for bridge from ARB to MINT                                                                                                                     |
 | comet_bridge_amount_max               | max amount for bridge from ARB to MINT                                                                                                                     |
+| find_and_steal_percentage_range_start               | start of the percentage range of trees to search for rewards                                                                                                                   |
+| find_and_steal_percentage_range_end               | end of the percentage range of trees to search for rewards                                                                                                                |
+| find_and_steal_min_amount               | min amount find and steal                                                                                                                |
 
 
 ## ⚙️ Accounts format (config > accounts.txt)

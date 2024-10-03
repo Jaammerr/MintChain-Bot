@@ -80,16 +80,26 @@ class Bot(MintChainAPI):
             retries=3,
         )
 
+    # ------------------------
+    # Start Upgrade from Mr. X
+    # ------------------------
+
     async def process_spin_turntable(self) -> bool:
         if config.spin_turntable_by_percentage_of_energy > 0:
             try:
+                
+                if await self.human_balance() < 0.00005:
+                    raise Exception(
+                        "Insufficient balance to turntable transaction | Required: 0.00005 ETH"
+                    )
+                
                 balance = await self.energy_balance
                 if balance < 300:
                     logger.warning(
                         f"Account: {self.account.auth_token} | Not enough energy to spin turntable"
                     )
                     return True
-
+                
                 amount = int(
                     balance * (config.spin_turntable_by_percentage_of_energy / 100)
                 )
@@ -98,11 +108,13 @@ class Bot(MintChainAPI):
                     number_of_spins = 5
 
                 for _ in range(number_of_spins):
-                    reward = await self.spin_turntable()
-                    logger.success(
-                        f"Account: {self.account.auth_token} | Opened turntable | Reward: {reward.energy} energy"
-                    )
-                    await asyncio.sleep(3)
+                    status, tx_hash, amount = await self.get_forest_proof_and_send_transaction('Turntable')
+
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Opened turntable | Reward: {amount} | Transaction: {tx_hash}"
+                        )
+                        await asyncio.sleep(3)
 
             except Exception as error:
                 logger.error(
@@ -110,6 +122,10 @@ class Bot(MintChainAPI):
                 )
 
         return True
+    
+    # ------------------------
+    # End Upgrade from Mr. X
+    # ------------------------
 
     async def process_show_user_info(self) -> None:
         try:
@@ -513,6 +529,87 @@ class Bot(MintChainAPI):
                         f"Account: {self.account.auth_token} | Sleeping for {delay} seconds.."
                     )
                     await asyncio.sleep(delay)
+
+    # ------------------------
+    # Start Upgrade from Mr. X
+    # ------------------------
+
+    async def process_total_user(self) -> bool | int:
+        try:
+            if not await self.process_login():
+                return False
+            
+            total_user = await self.total_user()
+
+            if total_user:
+                logger.success(
+                    f"Account: {self.account.auth_token} | Success get total users | Total users: {total_user}"
+                )
+                return total_user
+            
+        except Exception as error:
+            logger.error(
+                f"Account: {self.account.auth_token} | Failed to get total users: {error} | Retrying.."
+            )
+            await asyncio.sleep(1)
+
+    async def process_find_and_steal_rewards(self, start: int, end: int, min_amount: int = None):
+        try:
+
+            if not await self.process_login():
+                return False
+            
+            if not min_amount:
+                min_amount = 0
+            
+            logger.debug(
+                f"Account: {self.account.auth_token} | Begin the search for energy on trees in the range | Range: {start}, {end}"
+            )
+
+
+            for i in range(start, end):
+
+                if await self.human_balance() < 0.00005:
+                    raise Exception(
+                        "Insufficient balance to steal transaction | Required: 0.00005 ETH"
+                    )
+                
+                tree_id = i
+                other_user_info = await self.user_info(tree_id)
+
+                if other_user_info:
+                    other_user_energy = await self.get_energy_list(str(other_user_info.id))
+                    if other_user_energy.result:
+                        for energy in other_user_energy.result:
+                            if energy.stealable and energy.amount >= min_amount:
+
+                                logger.debug(
+                                    f"Account: {self.account.auth_token} | Find other trees user reward | Tree: {tree_id} | Amount: {energy.amount}"
+                                )
+
+                                status, tx_hash, amount = await self.get_forest_proof_and_send_transaction('Steal', user_id = other_user_info.id)
+                                if status:
+                                    logger.success(
+                                        f"Account: {self.account.auth_token} | Steal other trees user reward | Tree: {tree_id} | Amount: {amount} | Transaction: https://explorer.mintchain.io/tx/{tx_hash}"
+                                    )
+
+                await asyncio.sleep(0.5)
+
+        except Exception as error:
+
+            if "Invalid User" in str(error) or "No Data" in str(error):
+                logger.warning(
+                    f"Account: {self.account.auth_token} | Warning Invalid User or No data: {error}"
+                )
+            else:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to find other trees rewards: {error}"
+                )
+                await asyncio.sleep(1)
+
+    # ------------------------
+    # End Upgrade from Mr. X
+    # ------------------------ 
 
     async def start(self):
         random_delay = random.randint(

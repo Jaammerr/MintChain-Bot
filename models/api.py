@@ -21,11 +21,6 @@ class AssetData(BaseModel):
     createdAt: str | None = None
 
 
-class OpenBoxData(BaseModel):
-    energy: int
-    type: str = "energy"
-
-
 class ClaimData(BaseModel):
     code: int
     result: int
@@ -112,8 +107,3 @@ class TaskListData(BaseModel):
 
     result: list[Task]
 
-
-class TurntableData(BaseModel):
-    energy: int
-    count: int
-    usedEnergy: int

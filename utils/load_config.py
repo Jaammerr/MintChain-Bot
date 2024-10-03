@@ -59,6 +59,9 @@ def load_config() -> Config:
         "mint_random_all_nfts",
         "delay_between_mint_min",
         "delay_between_mint_max",
+        "find_and_steal_percentage_range_start",
+        "find_and_steal_percentage_range_end",
+        "find_and_steal_min_amount"
     )
 
     for key in REQUIRED_KEYS:

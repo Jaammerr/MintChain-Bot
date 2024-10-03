@@ -29,4 +29,12 @@ comet_bridge_wallet: ""  # pk or mnemonic from which script will send ETH to bri
 comet_bridge_amount_min: 0.00115  # ETH
 comet_bridge_amount_max: 0.0012  # ETH
 ## COMET BRIDGE ##
+#
+#
+#
+#
+## FIND AND STEAL OTHER TREES REWARDS SETTINGS ##
+find_and_steal_percentage_range_start: 25 ## start of the percentage range of trees to search for rewards
+find_and_steal_percentage_range_end: 50 ## end of the percentage range of trees to search for rewards
+find_and_steal_min_amount: 500
 
