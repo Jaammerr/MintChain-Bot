@@ -7,7 +7,7 @@ from loguru import logger
 from loader import config
 
 from .api import MintChainAPI
-from .exceptions.base import APIError
+from .exceptions.base import APIError, StealEnergyError
 from .modules import CometBridge
 
 
@@ -63,15 +63,6 @@ class Bot(MintChainAPI):
             retries=2,
         )
 
-    async def process_claim_daily_reward(self) -> bool:
-        return await self.safe_operation(
-            operation=self.claim_daily_rewards,
-            success_message="Finished claiming daily rewards",
-            error_message="Failed to claim daily rewards",
-            delay=10,
-            retries=3,
-        )
-
     async def process_inject(self) -> bool:
         return await self.safe_operation(
             operation=self.inject,
@@ -98,10 +89,18 @@ class Bot(MintChainAPI):
                     number_of_spins = 5
 
                 for _ in range(number_of_spins):
-                    reward = await self.spin_turntable()
-                    logger.success(
-                        f"Account: {self.account.auth_token} | Opened turntable | Reward: {reward.energy} energy"
-                    )
+                    turntable_proof = await self.get_turntable_forest_proof()
+                    status, transaction_hash = await self.claim_onchain(turntable_proof)
+
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Spun turntable | Reward: {turntable_proof['energy']} | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+                    else:
+                        logger.error(
+                            f"Account: {self.account.auth_token} | Failed to spin turntable | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+
                     await asyncio.sleep(3)
 
             except Exception as error:
@@ -123,124 +122,6 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Failed to get user info: {error} | Daily actions done.."
             )
 
-    async def process_mint_comm_nft(self) -> None:
-        try:
-            await self.check_balance()
-
-            try:
-                await self.join_airdrop()
-            except Exception as error:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to join airdrop: {error}"
-                )
-
-            logger.info(
-                f"Account: {self.account.auth_token} | Minting commemorative NFT.."
-            )
-            status, transaction_hash = await self.mint_commemorative_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted commemorative NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint commemorative NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_make_nft_great_again(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting MNGA NFT..")
-            status, transaction_hash = await self.mint_make_nft_great_again()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted MNGA NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint MNGA NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_flag_nft(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting Flag NFT..")
-            status, transaction_hash = await self.mint_flag_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Flag NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Flag NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_supermint_nft(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting SuperMint NFT..")
-            status, transaction_hash = await self.mint_supermint_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted SuperMint NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint SuperMint NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_air3_nft(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting Air3 NFT..")
-            status, transaction_hash = await self.mint_air3_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Air3 NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Air3 NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_shop_nft(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting Shop NFT..")
-            status, transaction_hash = await self.mint_shop_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Shop NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Shop NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
     async def process_join_airdrop(self) -> None:
         try:
             await self.join_airdrop()
@@ -256,176 +137,87 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Failed to join airdrop: {error}"
             )
 
-    async def process_mint_vip3_nft(self) -> None:
+
+
+    async def process_claim_points_onchain(self) -> bool:
         try:
             await self.check_balance()
+            logger.info(f"Account: {self.account.auth_token} | Claiming points on-chain..")
 
-            try:
-                await self.join_airdrop()
-            except Exception as error:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to join airdrop: {error}"
-                )
-
-            logger.info(f"Account: {self.account.auth_token} | Minting VIP3 NFT..")
-            status, transaction_hash = await self.mint_vip3_nft()
+            points_proof = await self.get_points_forest_proof()
+            status, transaction_hash = await self.claim_onchain(points_proof)
 
             if status:
                 logger.success(
-                    f"Account: {self.account.auth_token} | Minted VIP3 NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                    f"Account: {self.account.auth_token} | Claimed points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
                 )
             else:
                 logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint VIP3 NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                    f"Account: {self.account.auth_token} | Failed to claim points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
                 )
+
+            referral_proof = await self.get_referral_points_forest_proof()
+            if referral_proof["energy"] > 0:
+                status, transaction_hash = await self.claim_onchain(referral_proof)
+
+                if status:
+                    logger.success(
+                        f"Account: {self.account.auth_token} | Claimed referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                    )
+                    return True
+                else:
+                    logger.error(
+                        f"Account: {self.account.auth_token} | Failed to claim referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                    )
+
+            if status:
+                return True
 
         except Exception as error:
             logger.error(f"Account: {self.account.auth_token} | {error}")
 
-    async def process_mint_green_id(self) -> None:
+        return False
+
+
+    async def process_claim_boxes_onchain(self) -> bool:
         try:
             await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting Green ID..")
+            boxes = await self.get_boxes()
+            if boxes:
+                logger.info(f"Account: {self.account.auth_token} | Claiming boxes on-chain..")
 
-            tree_id = await self.process_get_tree_id()
-            if not tree_id:
-                return
+                for box_id in boxes:
+                    box_proof = await self.get_box_forest_proof(str(box_id))
+                    status, transaction_hash = await self.claim_onchain(box_proof)
 
-            status, transaction_hash = await self.mint_green_id_nft(int(tree_id))
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Green ID | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Claimed boxes on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+                    else:
+                        logger.error(
+                            f"Account: {self.account.auth_token} | Failed to claim boxes on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
             else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Green ID | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
+                logger.info(f"Account: {self.account.auth_token} | No boxes to claim..")
+
+            return True
 
         except Exception as error:
             logger.error(f"Account: {self.account.auth_token} | {error}")
 
-
-    async def process_mint_gainfi_nft(self) -> None:
-        try:
-            await self.check_balance()
-            logger.info(f"Account: {self.account.auth_token} | Minting GainFi NFT..")
-            status, transaction_hash = await self.mint_gainfi_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted GainFi NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint GainFi NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    # async def process_mint_omnihub_collection(self) -> None:
-    #     try:
-    #         if await self.human_balance() < 0.0001:
-    #             raise Exception("Insufficient balance to mint OmniHub collection | Required: 0.0001 ETH")
-    #
-    #         logger.info(f"Account: {self.account.auth_token} | Minting OmniHub collection")
-    #         status, transaction_hash = await self.mint_omnihub_collection()
-    #
-    #         if status:
-    #             logger.success(
-    #                 f"Account: {self.account.auth_token} | Minted OmniHub collection | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-    #             )
-    #         else:
-    #             logger.error(
-    #                 f"Account: {self.account.auth_token} | Failed to mint OmniHub collection | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-    #             )
-    #
-    #     except Exception as error:
-    #         logger.error(
-    #             f"Account: {self.account.auth_token} | {error}"
-    #         )
-
-    async def process_mint_summer_nft(self) -> None:
-        try:
-            if await self.human_balance() < 0.0001:
-                raise Exception(
-                    "Insufficient balance to mint Summer NFT | Required: 0.0001 ETH"
-                )
-
-            logger.info(f"Account: {self.account.auth_token} | Minting Summer NFT..")
-            status, transaction_hash = await self.mint_summer_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Summer NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Summer NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_owlto_summer_fest_nft(self) -> None:
-        try:
-            if await self.human_balance() < 0.0001:
-                raise Exception(
-                    "Insufficient balance to mint Owlto Summer Fest NFT | Required: 0.0001 ETH"
-                )
-
-            logger.info(
-                f"Account: {self.account.auth_token} | Minting Owlto Summer Fest NFT.."
-            )
-            status, transaction_hash = await self.mint_owlto_summer_fest_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted Owlto Summer Fest NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint Owlto Summer Fest NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
-
-    async def process_mint_omnihub_summer_nft(self) -> None:
-        try:
-            if await self.human_balance() < 0.0001:
-                raise Exception(
-                    "Insufficient balance to mint OmniHub Summer NFT | Required: 0.0001 ETH"
-                )
-
-            logger.info(
-                f"Account: {self.account.auth_token} | Minting OmniHub Summer NFT.."
-            )
-            status, transaction_hash = await self.mint_omnihub_summer_fest_nft()
-
-            if status:
-                logger.success(
-                    f"Account: {self.account.auth_token} | Minted OmniHub Summer NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-            else:
-                logger.error(
-                    f"Account: {self.account.auth_token} | Failed to mint OmniHub Summer NFT | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                )
-
-        except Exception as error:
-            logger.error(f"Account: {self.account.auth_token} | {error}")
+        return False
 
     async def process_comet_bridge(self) -> None:
         try:
-            amount_to_bridge = random.uniform(
+            amount_to_bridge = round(random.uniform(
                 config.comet_bridge_amount_min, config.comet_bridge_amount_max
-            )
+            ), 10)
             client = CometBridge(
                 amount_to_bridge=amount_to_bridge,
                 to_address=self.keypair.address,
                 mnemonic=config.comet_bridge_wallet,
-                rpc_url=config.arb_rpc_url,
+                rpc_url=config.op_rpc_url,
             )
 
             logger.info(
@@ -436,12 +228,12 @@ class Bot(MintChainAPI):
 
             if status:
                 logger.success(
-                    f"Account: {self.account.auth_token} | Bridged {amount_to_bridge} ETH to MINT | Transaction: https://arbiscan.io/tx/{tx_hash}"
+                    f"Account: {self.account.auth_token} | Bridged {amount_to_bridge} ETH to MINT | Transaction: https://optimistic.etherscan.io/tx{tx_hash}"
                 )
 
             else:
                 logger.error(
-                    f"Account: {self.account.auth_token} | Failed to bridge {amount_to_bridge} ETH to MINT | Transaction: https://arbiscan.io/tx/{tx_hash}"
+                    f"Account: {self.account.auth_token} | Failed to bridge {amount_to_bridge} ETH to MINT | Transaction: https://optimistic.etherscan.io/tx{tx_hash}"
                 )
 
         except Exception as error:
@@ -449,21 +241,9 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Error while bridging: {error}"
             )
 
-    async def process_complete_tasks(self):
-        return await self.safe_operation(
-            operation=self.complete_tasks,
-            success_message="Finished completing tasks",
-            error_message="Failed to complete tasks",
-            delay=10,
-            retries=3,
-        )
-
     async def process_get_tree_id(self) -> bool | str:
         for _ in range(2):
             try:
-                if not await self.process_login():
-                    return False
-
                 user_info = await self.user_info()
                 return str(user_info.treeId)
 
@@ -478,41 +258,73 @@ class Bot(MintChainAPI):
         )
         return False
 
-    async def process_mint_random_all_nfts(self) -> None:
-        operations_dict = {
-            "mint_comm_nft": self.process_mint_comm_nft,
-            "mint_make_nft_great_again": self.process_mint_make_nft_great_again,
-            "mint_flag": self.process_mint_flag_nft,
-            "mint_shop": self.process_mint_shop_nft,
-            "mint_air3": self.process_mint_air3_nft,
-            "mint_supermint": self.process_mint_supermint_nft,
-            "mint_summer_nft": self.process_mint_summer_nft,
-            "mint_owlto_summer_nft": self.process_mint_owlto_summer_fest_nft,
-            "mint_omnihub_summer_nft": self.process_mint_omnihub_summer_nft,
-            "mint_vip3_nft": self.process_mint_vip3_nft,
-            "mint_green_id": self.process_mint_green_id,
-        }
+    async def process_mint_green_id(self) -> bool:
+        try:
+            await self.check_balance()
+            logger.info(f"Account: {self.account.auth_token} | Minting Green ID..")
 
-        mint_modules = config.mint_random_all_nfts
-        random.shuffle(mint_modules)
+            tree_id = await self.process_get_tree_id()
+            if not tree_id:
+                return False
 
-        for module in mint_modules:
-            operation = operations_dict.get(module)
-            if operation:
-                try:
-                    await operation()
-                except Exception as error:
-                    logger.error(
-                        f"Account: {self.account.auth_token} | Failed to process {module}: {error}"
+            transaction = await self.build_green_id_nft_transaction(int(tree_id))
+            status, transaction_hash = await self.send_and_verify_transaction(transaction)
+
+            if status:
+                logger.success(
+                    f"Account: {self.account.auth_token} | Minted Green ID | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                )
+                return True
+            else:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to mint Green ID | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                )
+
+        except Exception as error:
+            logger.error(f"Account: {self.account.auth_token} | {error}")
+
+        return False
+
+
+    async def process_steal_energy(self, tree_id: str) -> bool:
+        for _ in range(2):
+            try:
+                user_info = await self.user_info(tree_id=tree_id)
+                if not user_info:
+                    return False
+
+                energy_list = await self.get_energy_list(user_id=str(user_info.id).strip())
+                if energy_list.result:
+                    steal_proof = await self.get_steal_energy_forest_proof(user_id=str(user_info.id).strip())
+                    status, transaction_hash = await self.claim_onchain(steal_proof)
+
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Stolen energy from {user_info.address} | Tree: {tree_id} | Energy: {energy_list.result[0].amount} | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+                        return True
+
+                    else:
+                        logger.error(
+                            f"Account: {self.account.auth_token} | Failed to steal energy from {user_info.address} | Tree: {tree_id} | Energy: {energy_list.result[0].amount} | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+                        return False
+
+                else:
+                    logger.warning(
+                        f"Account: {self.account.auth_token} | Energy not stealable from tree: {tree_id}"
                     )
-                finally:
-                    delay = random.randint(
-                        config.delay_between_mint_min, config.delay_between_mint_max
-                    )
-                    logger.debug(
-                        f"Account: {self.account.auth_token} | Sleeping for {delay} seconds.."
-                    )
-                    await asyncio.sleep(delay)
+                    return False
+
+            except Exception as error:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to steal energy: {error} | Retrying.."
+                )
+                await asyncio.sleep(1)
+
+        logger.error(f"Account: {self.account.auth_token} | Failed to steal energy after 2 retries | Skipping..")
+        raise StealEnergyError()
+
 
     async def start(self):
         random_delay = random.randint(
@@ -521,40 +333,19 @@ class Bot(MintChainAPI):
         logger.info(
             f"Account: {self.account.auth_token} | Work will start in {random_delay} seconds.."
         )
+
         await asyncio.sleep(random_delay)
 
         operations_dict = {
-            "rewards": [
-                self.process_login,
-                self.process_claim_daily_reward,
-                self.process_spin_turntable,
-                self.process_inject,
-                self.process_show_user_info,
-            ],
-            "only_rewards": [
-                self.process_login,
-                self.process_claim_daily_reward,
-                self.process_show_user_info,
-            ],
             "fix_sign": [self.process_login, self.process_fix_sign],
-            "mint_comm_nft": [self.process_mint_comm_nft],
-            "mint_make_nft_great_again": [self.process_mint_make_nft_great_again],
-            "mint_summer_nft": [self.process_mint_summer_nft],
-            "mint_flag": [self.process_mint_flag_nft],
-            "mint_shop": [self.process_mint_shop_nft],
-            "mint_air3": [self.process_mint_air3_nft],
-            "mint_supermint": [self.process_mint_supermint_nft],
-            "comet_bridge": [self.process_comet_bridge],
-            "mint_random_all_nfts": [self.process_mint_random_all_nfts],
-            "mint_owlto_summer_nft": [self.process_mint_owlto_summer_fest_nft],
-            "mint_omnihub_summer_nft": [self.process_mint_omnihub_summer_nft],
-            "mint_vip3_nft": [self.process_mint_vip3_nft],
-            "tasks": [self.process_login, self.process_complete_tasks],
-            "mint_gainfi_nft": [self.process_mint_gainfi_nft],
-            "default": [self.process_login, self.process_complete_tasks],
+            "claim_boxes_onchain": [self.process_login, self.process_claim_boxes_onchain, self.process_show_user_info],
+            "claim_points_onchain_and_inject": [self.process_login, self.process_claim_points_onchain, self.process_inject, self.process_show_user_info],
+            "spin_turntable_onchain": [self.process_login, self.process_spin_turntable, self.process_show_user_info],
+            "comet_bridge_onchain": [self.process_comet_bridge],
+            "mint_green_id_nft": [self.process_login, self.process_mint_green_id],
         }
 
-        operations = operations_dict.get(config.module, operations_dict["default"])
+        operations = operations_dict[config.module]
 
         try:
             for operation in operations:

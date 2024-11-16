@@ -77,3 +77,10 @@ class Vip3MintData:
 class GainfiMintData:
     address: str = "0xec863FCCfcbd25421D0747424e53ED0136aC9f82"
     abi: list = open("./abi/mint_gainfi.json", "r").read()
+
+
+
+@dataclass
+class MintForestV1Data:
+    address: str = "0x12906892AaA384ad59F2c431867af6632c68100a"
+    abi: list = open("./abi/mint_forest_v1.json", "r").read()

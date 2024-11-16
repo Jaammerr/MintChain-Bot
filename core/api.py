@@ -6,7 +6,7 @@ import pyuseragents
 import names
 
 from typing import Literal, List
-from noble_tls import Session, Client
+from curl_cffi.requests import AsyncSession
 from Jam_Twitter_API.account_async import TwitterAccountAsync
 
 from models import *
@@ -16,7 +16,7 @@ from .modules.temp_mail import TempMail
 
 from .wallet import Wallet
 from .modules import *
-from .exceptions.base import APIError
+from .exceptions.base import APIError, StealEnergyError
 
 
 class MintChainAPI(Wallet):
@@ -46,8 +46,8 @@ class MintChainAPI(Wallet):
     async def rank(self) -> int:
         return (await self.rank_info()).rank
 
-    def setup_session(self) -> Session:
-        session = Session(client=Client.CHROME_120)
+    def setup_session(self) -> AsyncSession:
+        session = AsyncSession(impersonate="chrome120")
         session.random_tls_extension_order = True
 
         session.timeout_seconds = 15
@@ -55,7 +55,7 @@ class MintChainAPI(Wallet):
             "accept": "application/json, text/plain, */*",
             "accept-language": "en-US,en;q=0.9,ru;q=0.8",
             "referer": "https://www.mintchain.io",
-            "user-agent": pyuseragents.random(),
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         }
         session.proxies = {
             "http": self.account.proxy,
@@ -302,21 +302,15 @@ class MintChainAPI(Wallet):
         response = await self.send_request(method="/tree/open-box", json_data=json_data)
         return OpenBoxData(**response["result"])
 
-    async def claim_boxes(self):
+    async def get_boxes(self) -> List[int]:
         assets = await self.assets()
+        boxes = []
+
         for asset in assets:
             if not asset.createdAt:
-                try:
-                    opened_box_data = await self.open_box(asset.id)
-                    logger.debug(
-                        f"Account: {self.account.auth_token} | Box opened | Reward: {opened_box_data.energy} energy"
-                    )
-                except APIError as error:
-                    logger.error(
-                        f"Account: {self.account.auth_token} | Failed to open box: {asset.type} | {error}"
-                    )
+                boxes.append(asset.id)
 
-                await asyncio.sleep(1)
+        return boxes
 
     async def spin_turntable(self) -> TurntableData:
         response = await self.send_request(
@@ -381,176 +375,22 @@ class MintChainAPI(Wallet):
             response = response.json()
             return response["msg"]["proof"]
 
-    async def mint_commemorative_nft(self) -> tuple[bool | Any, str]:
+
+    async def claim_onchain(self, claim_data: dict):
         try:
-            transaction = await self.build_commemorative_nft_transaction()
+            if claim_data.get("energy"):
+                amount = claim_data["energy"]
+            elif claim_data.get("amount"):
+                amount = claim_data["amount"]
+            else:
+                raise Exception("Amount not provided")
+
+            transaction = await self.build_forest_transaction(amount=amount, signature=claim_data["tx"])
             status, tx_hash = await self.send_and_verify_transaction(transaction)
             return status, tx_hash
 
         except Exception as error:
-            raise Exception(f"Failed to mint commemorative NFT: {error}")
-
-    async def mint_flag_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_mint_flag_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Flag NFT: {error}")
-
-    async def mint_shop_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_mint_shop_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Shop NFT: {error}")
-
-    async def mint_air3_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_mint_air3_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Air3 NFT: {error}")
-
-    async def mint_green_id_nft(self, tree_id: int) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_green_id_nft_transaction(tree_id)
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Green ID NFT: {error}")
-
-    async def mint_vip3_nft(self) -> tuple[bool | Any, str]:
-        try:
-            client = Vip3API(self.account)
-            await client.login()
-            mint_data = await client.get_mint_data()
-            transaction = await self.build_vip3_nft_transaction(mint_data)
-
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint VIP3 NFT: {error}")
-
-    async def mint_supermint_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_mint_supermint_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint SuperMint NFT: {error}")
-
-    async def mint_summer_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_summer_nft_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Summer NFT: {error}")
-
-    async def mint_make_nft_great_again(self) -> tuple[bool | Any, str]:
-        try:
-            proofs = await self.get_make_nft_great_again_proofs()
-            transaction = await self.build_make_nft_great_again_transaction(
-                proofs=proofs
-            )
-
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Make NFT Great Again: {error}")
-
-    async def mint_createx_collection(self) -> tuple[bool | Any, str]:
-        try:
-            name = f"{names.get_first_name()} {names.get_last_name()}"
-            symbol = random.choice(
-                [f"{name[:3].upper()}", f"{name[:4].upper()}", f"{name[:5].upper()}"]
-            )
-            description = f"Collection of {name} NFTs"
-            price = random.uniform(0.00001, 0.05)
-            royalty_fee = random.randint(1, 50)
-
-            client = CreateXAPI(
-                mnemonic=self.account.pk_or_mnemonic, rpc_url=configuration.mint_rpc_url
-            )
-            await client.login()
-            collection_id = await client.create_collection(
-                name=name,
-                symbol=symbol,
-                description=description,
-                price=str(price),
-                royalty_fee=str(royalty_fee),
-            )
-            await client.create_query_collection(collection_id=collection_id)
-            trx_data = await client.deploy(collection_id=collection_id)
-
-            transaction = await self.build_createx_collection_transaction(trx_data)
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint OmniHub collection: {error}")
-
-
-    async def mint_gainfi_nft(self):
-        for _ in range(3):
-            try:
-                temp_mail = TempMail()
-                await temp_mail.generate_account()
-
-                client = GainfiAPI(self.account)
-                await client.login()
-
-                await client.send_email_code(temp_mail.account.address)
-                logger.info(f"Account: {self.account.auth_token} | Waiting for verification code")
-                code = await temp_mail.get_verification_code()
-                mint_data = await client.verify_email(temp_mail.account.address, code)
-                logger.info(f"Account: {self.account.auth_token} | Code approved | Minting GainFi NFT..")
-
-                transaction = await self.build_gainfi_mint_transaction(mint_data)
-                status, tx_hash = await self.send_and_verify_transaction(transaction)
-                return status, tx_hash
-
-            except APIError as error:
-                if "Visit too frequently" in str(error):
-                    logger.error(f"Account: {self.account.auth_token} | Visit too frequently | Retrying..")
-                    await asyncio.sleep(3)
-
-            except Exception as error:
-                raise Exception(f"Failed to mint GainFi NFT: {error}")
-
-            finally:
-                await temp_mail.session.close()
-
-        logger.error(f"Account: {self.account.auth_token} | Failed to mint GainFi NFT")
-
-    async def mint_owlto_summer_fest_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_owlto_summer_fest_nft_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint Owlto Summer Fest NFT: {error}")
-
-    async def mint_omnihub_summer_fest_nft(self) -> tuple[bool | Any, str]:
-        try:
-            transaction = await self.build_omnihub_summer_fest_nft_transaction()
-            status, tx_hash = await self.send_and_verify_transaction(transaction)
-            return status, tx_hash
-
-        except Exception as error:
-            raise Exception(f"Failed to mint OmniHub Summer Fest NFT: {error}")
+            raise Exception(f"Failed to claim points onchain: {error}")
 
     async def verify_wallet(self) -> ResponseData:
         json_data = {
@@ -559,6 +399,80 @@ class MintChainAPI(Wallet):
 
         response = await self.send_request(method="/wallet/verify", json_data=json_data)
         return ResponseData(**response)
+
+
+    async def get_points_forest_proof(self) -> dict:
+        params = {
+            "type": "Signin",
+        }
+
+        response = await self.send_request(
+            request_type="GET",
+            method="/tree/get-forest-proof",
+            params=params,
+        )
+
+        return response["result"]
+
+
+    async def get_referral_points_forest_proof(self) -> dict:
+        params = {
+            "type": "InviteClaim",
+            "address": str(self.keypair.address),
+        }
+
+        response = await self.send_request(
+            request_type="GET",
+            method="/tree/get-forest-proof",
+            params=params,
+        )
+
+        return response["result"]
+
+
+    async def get_box_forest_proof(self, box_id: str) -> dict:
+        params = {
+            "type": "OpenReward",
+            "boxId": box_id,
+        }
+
+        response = await self.send_request(
+            request_type="GET",
+            method="/tree/get-forest-proof",
+            params=params,
+        )
+
+        return response["result"]
+
+
+    async def get_turntable_forest_proof(self) -> dict:
+        params = {
+            'type': 'Turntable',
+        }
+
+        response = await self.send_request(
+            request_type="GET",
+            method="/tree/get-forest-proof",
+            params=params,
+        )
+
+        return response["result"]
+
+
+    async def get_steal_energy_forest_proof(self, user_id: str) -> dict:
+        params = {
+            'type': 'Steal',
+            'id': user_id,
+        }
+
+        response = await self.send_request(
+            request_type="GET",
+            method="/tree/get-forest-proof",
+            params=params,
+        )
+
+        return response["result"]
+
 
     async def join_airdrop(self) -> dict:
         messages = self.sign_mint_message("airdrop")

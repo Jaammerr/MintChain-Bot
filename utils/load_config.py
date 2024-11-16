@@ -47,18 +47,12 @@ def load_config() -> Config:
     REQUIRED_KEYS = (
         "referral_code",
         "mint_rpc_url",
-        "arb_rpc_url",
         "threads",
         "min_delay_before_start",
         "max_delay_before_start",
         "spin_turntable_by_percentage_of_energy",
         "shuffle_accounts",
-        "comet_bridge_amount_min",
-        "comet_bridge_amount_max",
-        "comet_bridge_wallet",
-        "mint_random_all_nfts",
-        "delay_between_mint_min",
-        "delay_between_mint_max",
+        "start_stealing_from_tree"
     )
 
     for key in REQUIRED_KEYS:

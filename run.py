@@ -1,11 +1,14 @@
 import asyncio
 import sys
+from itertools import cycle
 from typing import Any
 
 import urllib3
 
 
 from loguru import logger
+
+from core.exceptions.base import StealEnergyError
 from loader import config, semaphore
 from core.bot import Bot
 from models import Account
@@ -30,13 +33,30 @@ async def run_safe(account: Account):
         await Bot(account).start()
 
 
-async def run_get_tree_info_module(account: Account) -> tuple[Any, bool | str]:
-    async with semaphore:
-        client = Bot(account)
-        tree_id = await client.process_get_tree_id()
-        if tree_id:
-            logger.info(f"Account: {account.auth_token} | Tree ID: {tree_id}")
-            return client.keypair.address, tree_id
+
+async def run_steal_energy_module():
+    start_number = config.start_stealing_from_tree
+    trees_cycle = cycle(range(start_number, -1, -1))
+
+    for account in config.accounts:
+        try:
+            client = Bot(account)
+            status = await client.process_login()
+            if not status:
+                continue
+
+            for _ in range(8):
+                while True:
+                    tree_id = str(next(trees_cycle))
+                    status = await client.process_steal_energy(tree_id=tree_id)
+                    if not status:
+                        await asyncio.sleep(0.3)
+                    else:
+                        break
+
+        except StealEnergyError:
+            continue
+
 
 
 async def run():
@@ -44,40 +64,19 @@ async def run():
         Console().build()
 
         if config.module in (
-            "bridge",
-            "rewards",
-            "tasks",
-            "fix_sign",
-            "mint_comm_nft",
-            "only_rewards",
-            "mint_omnihub",
-            "mint_make_nft_great_again",
-            "mint_summer_nft",
-            "mint_flag",
-            "mint_shop",
-            "mint_air3",
-            "mint_supermint",
-            "comet_bridge",
-            "mint_all_nfts",
-            "mint_owlto_summer_nft",
-            "mint_omnihub_summer_nft",
-            "mint_random_all_nfts",
-            "mint_vip3_nft",
-            "mint_green_id",
-            "mint_gainfi_nft",
+            "claim_points_onchain_and_inject",
+            "claim_boxes_onchain",
+            "spin_turntable_onchain",
+            "comet_bridge_onchain",
+            "mint_green_id_nft"
         ):
             tasks = [
                 asyncio.create_task(run_safe(account)) for account in config.accounts
             ]
             await asyncio.gather(*tasks)
 
-        elif config.module == "export_trees_ids":
-            tasks = [
-                asyncio.create_task(run_get_tree_info_module(account))
-                for account in config.accounts
-            ]
-            results = await asyncio.gather(*tasks)
-            export_trees_ids(results)
+        elif config.module == "steal_energy_onchain":
+            await run_steal_energy_module()
 
         input("\n\nPress Enter to continue...")
 

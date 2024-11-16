@@ -1,1 +1,1 @@
-auth_token|pk_or_mnemonic|ip:port:user:pass
+auth_token|private_key|ip:port:user:pass
