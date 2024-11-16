@@ -16,7 +16,6 @@ class Config(BaseModel):
 
     comet_bridge_amount_min: PositiveFloat
     comet_bridge_amount_max: PositiveFloat
-    comet_bridge_wallet: str
 
     start_stealing_from_tree: PositiveInt
 

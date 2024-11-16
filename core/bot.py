@@ -216,7 +216,7 @@ class Bot(MintChainAPI):
             client = CometBridge(
                 amount_to_bridge=amount_to_bridge,
                 to_address=self.keypair.address,
-                mnemonic=config.comet_bridge_wallet,
+                mnemonic=self.account.pk_or_mnemonic,
                 rpc_url=config.op_rpc_url,
             )
 
