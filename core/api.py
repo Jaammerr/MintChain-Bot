@@ -47,7 +47,7 @@ class MintChainAPI(Wallet):
         return (await self.rank_info()).rank
 
     def setup_session(self) -> AsyncSession:
-        session = AsyncSession(impersonate="chrome120")
+        session = AsyncSession(impersonate="chrome120", verify=False)
         session.random_tls_extension_order = True
 
         session.timeout_seconds = 15
