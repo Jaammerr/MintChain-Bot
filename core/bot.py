@@ -4,11 +4,13 @@ from typing import Any
 
 from models import Account
 from loguru import logger
-from loader import config
+from loader import config, progress
 
+from utils import AccountProgress
 from .api import MintChainAPI
 from .exceptions.base import APIError, StealEnergyError
 from .modules import CometBridge
+
 
 
 class Bot(MintChainAPI):
@@ -45,6 +47,7 @@ class Bot(MintChainAPI):
                 continue
 
         return False
+
 
     async def process_login(self) -> bool:
         logger.info(f"Account: {self.account.auth_token} | Logging in..")
@@ -108,6 +111,7 @@ class Bot(MintChainAPI):
                     f"Account: {self.account.auth_token} | Failed to spin turntable: {error}"
                 )
 
+        progress.increment()
         return True
 
     async def process_show_user_info(self) -> None:
@@ -156,22 +160,31 @@ class Bot(MintChainAPI):
                     f"Account: {self.account.auth_token} | Failed to claim points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
                 )
 
-            referral_proof = await self.get_referral_points_forest_proof()
-            if referral_proof["energy"] > 0:
-                status, transaction_hash = await self.claim_onchain(referral_proof)
+            try:
+                referral_proof = await self.get_referral_points_forest_proof()
+                if referral_proof["energy"] > 0:
+                    status, transaction_hash = await self.claim_onchain(referral_proof)
+
+                    if status:
+                        logger.success(
+                            f"Account: {self.account.auth_token} | Claimed referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
+                        progress.increment()
+                        return True
+
+                    else:
+                        logger.error(
+                            f"Account: {self.account.auth_token} | Failed to claim referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
+                        )
 
                 if status:
-                    logger.success(
-                        f"Account: {self.account.auth_token} | Claimed referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                    )
                     return True
-                else:
-                    logger.error(
-                        f"Account: {self.account.auth_token} | Failed to claim referral points on-chain | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
-                    )
+            except APIError as error:
+                if "You haven't invited any users yet" in str(error):
+                    progress.increment()
+                    return True
 
-            if status:
-                return True
+                logger.error(f"Account: {self.account.auth_token} | {error}")
 
         except Exception as error:
             logger.error(f"Account: {self.account.auth_token} | {error}")
@@ -230,6 +243,7 @@ class Bot(MintChainAPI):
                 logger.success(
                     f"Account: {self.account.auth_token} | Bridged {amount_to_bridge} ETH to MINT | Transaction: https://optimistic.etherscan.io/tx{tx_hash}"
                 )
+                progress.increment()
 
             else:
                 logger.error(
@@ -274,6 +288,7 @@ class Bot(MintChainAPI):
                 logger.success(
                     f"Account: {self.account.auth_token} | Minted Green ID | Transaction: https://explorer.mintchain.io/tx/{transaction_hash}"
                 )
+                progress.increment()
                 return True
             else:
                 logger.error(
@@ -343,6 +358,7 @@ class Bot(MintChainAPI):
             "spin_turntable_onchain": [self.process_login, self.process_spin_turntable, self.process_show_user_info],
             "comet_bridge_onchain": [self.process_comet_bridge],
             "mint_green_id_nft": [self.process_login, self.process_mint_green_id],
+            "complete_tasks": [self.process_login, self.complete_tasks, self.process_show_user_info],
         }
 
         operations = operations_dict[config.module]
@@ -357,4 +373,4 @@ class Bot(MintChainAPI):
                 f"Account: {self.account.auth_token} | Unhandled error: {error}"
             )
         finally:
-            logger.success(f"Account: {self.account.auth_token} | Finished")
+            logger.success(f"Account: {self.account.auth_token} | Finished | Progress {progress.processed}/{progress.total}")

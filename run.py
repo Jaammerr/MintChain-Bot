@@ -60,25 +60,26 @@ async def run_steal_energy_module():
 
 
 async def run():
-    while True:
-        Console().build()
+    # while True:
+    Console().build()
 
-        if config.module in (
-            "claim_points_onchain_and_inject",
-            "claim_boxes_onchain",
-            "spin_turntable_onchain",
-            "comet_bridge_onchain",
-            "mint_green_id_nft"
-        ):
-            tasks = [
-                asyncio.create_task(run_safe(account)) for account in config.accounts
-            ]
-            await asyncio.gather(*tasks)
+    if config.module in (
+        "claim_points_onchain_and_inject",
+        "claim_boxes_onchain",
+        "spin_turntable_onchain",
+        "comet_bridge_onchain",
+        "mint_green_id_nft",
+        "complete_tasks",
+    ):
+        tasks = [
+            asyncio.create_task(run_safe(account)) for account in config.accounts
+        ]
+        await asyncio.gather(*tasks)
 
-        elif config.module == "steal_energy_onchain":
-            await run_steal_energy_module()
+    elif config.module == "steal_energy_onchain":
+        await run_steal_energy_module()
 
-        input("\n\nPress Enter to continue...")
+    input("\n\nPress Enter to exit...")
 
 
 if __name__ == "__main__":

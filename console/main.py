@@ -20,6 +20,7 @@ class Console:
         "Spin Turntable Onchain",
         "Bridge from OP to MINT (CometBridge)",
         "Mint Green ID NFT",
+        "Complete tasks",
         "Exit",
     )
     MODULES_DATA = {
@@ -29,6 +30,7 @@ class Console:
         "Spin Turntable Onchain": "spin_turntable_onchain",
         "Bridge from OP to MINT (CometBridge)": "comet_bridge_onchain",
         "Mint Green ID NFT": "mint_green_id_nft",
+        "Complete tasks": "complete_tasks",
     }
 
     @staticmethod

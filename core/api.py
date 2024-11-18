@@ -10,7 +10,7 @@ from curl_cffi.requests import AsyncSession
 from Jam_Twitter_API.account_async import TwitterAccountAsync
 
 from models import *
-from loader import config as configuration
+from loader import config as configuration, progress
 from .modules.gainfi_api import GainfiAPI
 from .modules.temp_mail import TempMail
 
@@ -151,45 +151,28 @@ class MintChainAPI(Wallet):
     async def complete_tasks(self):
         task_list = await self.get_task_list()
         for task in task_list.result:
-            if task.spec not in ("discord-follow", "stake"):
-                if task.claimed:
-                    logger.debug(
-                        f"Account: {self.account.auth_token} | Task already completed: {task.name}"
-                    )
-                    continue
+            if task.claimed:
+                logger.debug(
+                    f"Account: {self.account.auth_token} | Task already completed: {task.name}"
+                )
+                continue
 
-                try:
-                    if task.spec in ("twitter-post", "twitter-follow"):
-                        if not self.twitter_account:
-                            self.load_twitter_account()
-
-                        if task.spec == "twitter-follow":
-                            user_id = self.twitter_account.get_user_id(
-                                "Mint_Blockchain"
-                            )
-                            self.twitter_account.follow(user_id)
-                            await self.submit_task_id(task.id)
-
-                        else:
-                            tweet_text = "I'm collecting @Mint_Blockchain's ME $MINT in the #MintForest🌳!\n\nMint is the L2 for NFT industry, powered by @nftscan_com and @Optimism.\n\nJoin Mint Forest here: https://mintchain.io/mint-forest\n\n#MintBlockchain #L2forNFT"
-
-                            data = self.twitter_account.tweet(tweet_text)
-                            tweet_url = f'https://x.com/JammerCrypto/status/{data["data"]["create_tweet"]["tweet_results"]["result"]["rest_id"]}'
-                            await self.submit_task_id(task.id, twitter_post=tweet_url)
-
-                    else:
-                        await self.submit_task_id(task.id)
-
+            try:
+                if task.spec not in ("discord-follow", "twitter-follow", "stake") and not task.name.startswith("Share"):
+                    await self.submit_task_id(task.id)
                     logger.debug(
                         f"Account: {self.account.auth_token} | Task completed: {task.name} | Reward: {task.amount} energy"
                     )
                     await asyncio.sleep(3)
 
-                except APIError as error:
-                    logger.error(
-                        f"Account: {self.account.auth_token} | Failed to complete task: {task.name} | {error}"
-                    )
-                    await asyncio.sleep(3)
+            except APIError as error:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to complete task: {task.name} | {error}"
+                )
+                await asyncio.sleep(3)
+
+        progress.increment()
+        return True
 
     async def claim_daily_rewards(self) -> None:
         energy_list = await self.get_energy_list()
@@ -217,12 +200,13 @@ class MintChainAPI(Wallet):
             )
             await asyncio.sleep(1)
 
-        await self.claim_boxes()
 
     async def bind_invite_code(self) -> ResponseData:
         jwt_token = self.jwt_token
 
-        session = Session(client=Client.CHROME_120)
+        session = AsyncSession(impersonate="chrome120", verify=False)
+        session.random_tls_extension_order = True
+
         session.headers = {
             "accept": "application/json, text/plain, */*",
             "accept-language": "sk-SK,sk;q=0.9,en-US;q=0.8,en;q=0.7",
