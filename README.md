@@ -11,7 +11,7 @@
 
 🔔 CHANNEL: https://t.me/mrxcrypto
 
-💬 CHAT: https://t.me/JamBitChat
+💬 CHAT: https://t.me/+u7hWfz0WqsFkNmMy
 
 💬 CHAT: https://t.me/mrxcrypto_chat
 
