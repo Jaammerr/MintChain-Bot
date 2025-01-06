@@ -272,6 +272,23 @@ class Bot(MintChainAPI):
         )
         return False
 
+    async def process_get_referral_code(self) -> bool | str:
+        for _ in range(2):
+            try:
+                user_info = await self.user_info()
+                logger.success(f"Account: {self.account.auth_token} | Got referral code")
+                return user_info.code
+
+            except Exception as error:
+                logger.error(
+                    f"Account: {self.account.auth_token} | Failed to get referral code: {error}"
+                )
+
+        logger.error(
+            f"Account: {self.account.auth_token} | Failed to get tree id after 2 retries | Skipping.."
+        )
+        return False
+
     async def process_mint_green_id(self) -> bool:
         try:
             await self.check_balance()

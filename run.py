@@ -1,7 +1,6 @@
 import asyncio
 import sys
 from itertools import cycle
-from typing import Any
 
 import urllib3
 
@@ -13,7 +12,7 @@ from loader import config, semaphore
 from core.bot import Bot
 from models import Account
 from console import Console
-from utils import export_trees_ids
+from utils import export_referral_codes
 
 
 def setup():
@@ -32,6 +31,16 @@ async def run_safe(account: Account):
     async with semaphore:
         await Bot(account).start()
 
+
+async def run_export_referral_codes(account: Account) -> tuple[str, str]:
+    async with semaphore:
+        bot = Bot(account)
+        status = await bot.process_login()
+        if not status:
+            return bot.keypair.address, ""
+
+        referral_code = await bot.process_get_referral_code()
+        return bot.keypair.address, referral_code
 
 
 async def run_steal_energy_module():
@@ -59,6 +68,9 @@ async def run_steal_energy_module():
 
 
 
+
+
+
 async def run():
     # while True:
     Console().build()
@@ -78,6 +90,12 @@ async def run():
 
     elif config.module == "steal_energy_onchain":
         await run_steal_energy_module()
+
+    elif config.module == "export_referral_codes":
+        results = await asyncio.gather(
+            *[run_export_referral_codes(account) for account in config.accounts]
+        )
+        export_referral_codes(results)
 
     input("\n\nPress Enter to exit...")
 

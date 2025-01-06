@@ -265,7 +265,7 @@ class MintChainAPI(Wallet):
     async def user_info(self, tree_id: str = None) -> UserInfo:
         if not tree_id:
             response = await self.send_request(
-                request_type="GET", method="/tree/user-info"
+                request_type="GET", method="/tree/user-info", params={"type": None}
             )
         else:
             response = await self.send_request(

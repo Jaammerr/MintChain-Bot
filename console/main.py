@@ -21,6 +21,7 @@ class Console:
         "Bridge from OP to MINT (CometBridge)",
         "Mint Green ID NFT",
         "Complete tasks",
+        "Export referral codes",
         "Exit",
     )
     MODULES_DATA = {
@@ -31,6 +32,7 @@ class Console:
         "Bridge from OP to MINT (CometBridge)": "comet_bridge_onchain",
         "Mint Green ID NFT": "mint_green_id_nft",
         "Complete tasks": "complete_tasks",
+        "Export referral codes": "export_referral_codes",
     }
 
     @staticmethod
